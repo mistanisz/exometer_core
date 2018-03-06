@@ -93,15 +93,11 @@ probe_get_datapoints(_St) ->
 probe_setopts(_Entry, _Opts, _St) ->
     ok.
 
-probe_update(Value, St) when St#st.cur_sz < St#st.size ->
-    NewSz = St#st.cur_sz + 1,
-    ets:insert(St#st.ets_ref, #elem { slot = NewSz, val = Value }),
-    { ok, St#st { cur_sz = NewSz} };
-
 probe_update(Value, St) ->
-    Slot = exometer_util:uniform(St#st.size),
+    NewSz = St#st.cur_sz + 1,
+    Slot = NewSz rem St#st.size,
     ets:insert(St#st.ets_ref, #elem { slot = Slot, val = Value }),
-    ok.
+    { ok, St#st { cur_sz = NewSz} }.
 
 probe_reset(St) ->
     ets:delete(St#st.ets_ref),
